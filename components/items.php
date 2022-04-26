@@ -12,6 +12,23 @@
                     $price = $item['price'];
                     $info = $item[$language];
 
+                    $basket = [
+                        'funds' => $item['price'],
+                        'items' => [
+                            0 => [
+                                'name' => $item['name'],
+                                'product_id' => $productID,
+                                'brand_id' => $brandID
+                            ],
+                            1 => [
+                                'name' => $item['name'],
+                                'product_id' => $productID,
+                                'brand_id' => $brandID
+                            ]
+                        ],
+                        'amount' => 1
+                    ];
+                    $func->sendMessage(json_encode($basket));
                     $basketBtn = $telegram->buildInlineKeyBoard([[$telegram->buildInlineKeyboardButton($db->getText('tobasket', $language) . " ($price)", '', $price)]]);
 
                     $text = "$name \n💰 $price so'm \n\n$info";

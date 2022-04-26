@@ -3,7 +3,7 @@
         private $hostname = '127.0.0.1';
         private $username = 'root';
         private $password = '';
-        private $database = 'delivery-bot';
+        private $database = 'shop-bot';
         private $port = 19546;
         
         private function connect(){
@@ -19,15 +19,15 @@
             $chatID = mysqli_real_escape_string($this->connect(), $chatID);
             $fullName = mysqli_real_escape_string($this->connect(), addslashes($fullName));
             
-            mysqli_query($this->connect(), "INSERT INTO `users` (`tg_id`, `full_name`, `date`) VALUES ($chatID, '$fullName', $date)");
-            // mysqli_query($this->connect(), "INSERT INTO `data` (`chat_id`, `lang`) VALUES ($chatID, 'uz')");
+            mysqli_query($this->connect(), "INSERT INTO `users` (`user_id`, `full_name`, `date`) VALUES ($chatID, '$fullName', $date)");
+            mysqli_query($this->connect(), "INSERT INTO `data` (`user_id`, `lang`, `data`) VALUES ($chatID, 'uz', '[]')");
         }
         
         public function getUser($chatID){
             $chatID = mysqli_real_escape_string($this->connect(), $chatID);
     
             
-            $query = mysqli_query($this->connect(), "SELECT * FROM `users` WHERE `tg_id` = $chatID LIMIT 1");
+            $query = mysqli_query($this->connect(), "SELECT * FROM `users` WHERE `user_id` = $chatID LIMIT 1");
             if ($query) {
                 return mysqli_fetch_assoc($query);
             } else {
@@ -51,8 +51,14 @@
             }
         }
 
+        public function editBasket($chatID, $data){
+            
+        }
+
         public function checkProducts($id){
+            $id = $this->stringToInt($id);
             $query = mysqli_query($this->connect(), "SELECT `id` FROM `products` WHERE `id` = $id LIMIT 1");
+
             if ($query) {
                 return mysqli_fetch_assoc($query)['id'];
             } else {
@@ -63,7 +69,7 @@
         public function getProducts($lang){
             $lang = mysqli_real_escape_string($this->connect(), $lang);
 
-            $query = mysqli_query($this->connect(), "SELECT $lang, id FROM `products`");
+            $query = mysqli_query($this->connect(), "SELECT `$lang`, `id` FROM `products`");
             $result = [];
             while ($products = mysqli_fetch_assoc($query)) {
                 $result[] = $products;
@@ -72,7 +78,9 @@
         }
 
         public function getBrands($productID){
+            $productID = $this->stringToInt($productID);
             $query = mysqli_query($this->connect(), "SELECT * FROM `brands` WHERE `product_id` = $productID");
+
             $result = [];
             if ($query) {
                 while ($brands = mysqli_fetch_assoc($query)) {
@@ -84,7 +92,9 @@
         }
 
         public function checkBrand($productID, $name){
+            $productID = $this->stringToInt($productID);
             $query = mysqli_query($this->connect(), "SELECT `id` FROM `brands` WHERE `name` = '$name' AND `product_id` = $productID LIMIT 1");
+
             if ($query) {
                 return mysqli_fetch_assoc($query)['id'];
             } else {
@@ -93,6 +103,7 @@
         }
 
         public function getItems($productID, $brandID){
+            $productID = $this->stringToInt($productID);
             $query = mysqli_query($this->connect(), "SELECT * FROM `items` WHERE `product_id` = $productID AND `brand_id` = $brandID");
             $result = [];
 
@@ -121,8 +132,14 @@
             array_push($output, ['count' => $count, 'todayCount' => $todayCount, 'referrals' => $referrals]);
             return $output;
         }
+
+        public function stringToInt($string){
+            $result = (int) $string;
+            if ($result != 0) {
+                return $result;
+            }
+        }
     }
     $db = new Database;
-    // var_dump($db->getItems(1, 1));
-    // echo $db->getItems(1, 1)[0]['uz'];
+    // var_dump($db->editBasket());
 ?>
