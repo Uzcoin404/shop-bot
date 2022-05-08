@@ -20,7 +20,7 @@
             $fullName = mysqli_real_escape_string($this->connect(), addslashes($fullName));
             
             mysqli_query($this->connect(), "INSERT INTO `users` (`user_id`, `full_name`, `date`) VALUES ($chatID, '$fullName', $date)");
-            mysqli_query($this->connect(), "INSERT INTO `data` (`user_id`, `lang`, `data`) VALUES ($chatID, 'uz', '[]')");
+            mysqli_query($this->connect(), "INSERT INTO `data` (`user_id`, `lang`) VALUES ($chatID, 'uz')");
         }
         
         public function getUser($chatID){
@@ -51,8 +51,36 @@
             }
         }
 
+        public function getBasket($chatID){
+            $query = mysqli_query($this->connect(), "SELECT `cash`, `basket` FROM `data` WHERE `user_id`=$chatID LIMIT 1");
+            if ($query) {
+                $result = mysqli_fetch_assoc($query);
+                return $result;
+            } else {
+                return false;
+            }
+        }
+
         public function editBasket($chatID, $data){
+            $basket = $this->getBasket($chatID);
+            $oldData = json_decode($basket['basket'], true);
+            $cash = 0;
             
+            if (count($oldData) > 0) {
+                array_push($oldData['basket']['items'], $data);
+            } else {
+                array_push($oldData['basket']['items'], $data);
+            }
+            $items = $oldData['basket']['items'];
+            $oldData['basket']['count'] = count($items);
+            for ($i=0; $i < count($items); $i++) { 
+                $cash += $items[$i]['price'];
+            }
+            
+            $oldData['cash'] = $cash;
+            $basket = json_encode($oldData);
+            $query = mysqli_query($this->connect(), "UPDATE `data` SET `basket`='$basket',`cash`=$cash WHERE `user_id`=$chatID");
+            var_dump(json_encode($items));
         }
 
         public function checkProducts($id){
@@ -140,6 +168,4 @@
             }
         }
     }
-    $db = new Database;
-    // var_dump($db->editBasket());
 ?>

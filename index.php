@@ -17,7 +17,7 @@ $products = new Products();
 $brands = new Brands();
 $items = new Items();
 $Admin = "829349149";
-// $telegram->setWebhook('https://9c13-84-54-94-80.eu.ngrok.io/telegram/shop-bot/');
+// $telegram->setWebhook('https://5d25-139-28-28-203.ngrok.io/shop-bot/');
 
 $message = isset($telegram->getData()['message']) ? $telegram->getData()['message'] : '';
 $messageID = $telegram ->MessageID();
@@ -86,11 +86,22 @@ if ($text == '/start' || str_contains($text, '/start')) {
             $telegram->answerCallbackQuery(['callback_query_id' => $telegram->Callback_ID(), 'text' => '']);
             break;
         case "brands":
+            $callbackData = json_decode($text, true);
             $brand = $db->checkBrand($userData->getData('product'), $text);
+
+            if ($callbackData) {
+                $db->editBasket($chatID, $callbackData);
+                $telegram->answerCallbackQuery(['callback_query_id' => $telegram->Callback_ID(), 'text' => $db->getText('addedBasket', $language)]);
+                $items->showWarning();
+            }
             if ($brand) {
                 $userData->setData('brand', $brand);
                 $items->showItems($brand);
             } else if ($db->getText('back', $language) == $text) {
+                $products->showProducts();
+            } else if ($db->getText('yes', $language) == $text) {
+                $products->showProducts();
+            } else if ($db->getText('no', $language) == $text) {
                 showMain();
             }
             break;
@@ -131,7 +142,7 @@ function showMain($lang = null){
         [$telegram->buildKeyboardButton($db->getText('info_bot', $language))],
         [$telegram->buildKeyboardButton($db->getText('choose_lang', $language))]
     ]);
-    $text ="*". $db->getText('welcome_message', $language) ."*";
+    $text =$db->getText('welcome_message', $language);
     $func->sendMessage($text, true, $mainButtons);
     $userData->setPage('main');
 }
