@@ -61,6 +61,17 @@
             }
         }
 
+        public function getBalance($chatID){
+            $query = mysqli_query($this->connect(), "SELECT `cash` FROM `data` WHERE `user_id`=$chatID LIMIT 1");
+            if ($query) {
+                $result = mysqli_fetch_assoc($query)['cash'];
+                
+                return $result;
+            } else {
+                return false;
+            }
+        }
+
         public function editBasket($chatID, $data){
             $basket = $this->getBasket($chatID);
             $oldData = json_decode($basket['basket'], true);

@@ -1,5 +1,7 @@
 <?php
 date_default_timezone_set('Asia/Tashkent');
+$siteUrl = 'https://7558-213-230-68-215.ngrok.io/shop-bot/';
+
 require_once('library/Telegram.php');
 require_once('components/db.php');
 require_once('functions.php');
@@ -7,6 +9,7 @@ require_once('user.php');
 include_once('components/products.php');
 include_once('components/brands.php');
 include_once('components/items.php');
+include_once('components/basket.php');
 
 $telegram = new Telegram("5055709592:AAHyt7y78TNwmRqOxaNW63BHTF2GQYN4jpc", true);
 $chatID = $telegram ->ChatID();
@@ -16,8 +19,9 @@ $func = new Functions();
 $products = new Products();
 $brands = new Brands();
 $items = new Items();
+$basket = new Basket();
 $Admin = "829349149";
-// $telegram->setWebhook('https://5d25-139-28-28-203.ngrok.io/shop-bot/');
+$telegram->setWebhook($siteUrl);
 
 $message = isset($telegram->getData()['message']) ? $telegram->getData()['message'] : '';
 $messageID = $telegram ->MessageID();
@@ -53,12 +57,12 @@ if ($text == '/start' || str_contains($text, '/start')) {
             }
             break;
         case "main":
+            if (str_contains($text, $db->getText('basket', $language))) {
+                $basket->showBasket();
+            }
             switch ($text) {
                 case $db->getText('products', $language):
                     $products->showProducts();
-                    break;
-                case $db->getText('basket', $language):
-                    $func->sendMessage($text);
                     break;
                 case $db->getText('contact', $language):
                     $func->sendMessage($text);
@@ -69,10 +73,13 @@ if ($text == '/start' || str_contains($text, '/start')) {
                 case $db->getText('choose_lang', $language):
                     showLanguage();
                     break;
-                default:
-                    $func->sendMessage($db->getText('no_command3', $language), true);
-                    break;
+                // default:
+                //     $func->sendMessage($db->getText('no_command3', $language), true);
+                //     break;
             }
+            break;
+        case "basket":
+
             break;
         case "products":
             if ($db->checkProducts($text)) {
@@ -131,14 +138,15 @@ function showLanguage(){
 }
 
 function showMain($lang = null){
-    global $telegram, $userData, $func, $db, $language;
+    global $telegram, $userData, $func, $db, $language, $chatID;
+    $balance = number_format($db->getBalance($chatID), 0, '', ' ');
     if ($lang != null) {
         $language = $lang;
     }
     
     $mainButtons = $telegram->buildKeyBoard([
-        [$telegram->buildKeyboardButton($db->getText('products', $language))],
-        [$telegram->buildKeyboardButton($db->getText('basket', $language)), $telegram->buildKeyboardButton($db->getText('contact', $language))],
+        [$telegram->buildKeyboardButton($db->getText('basket', $language)  . " ($balance so'm)")],
+        [$telegram->buildKeyboardButton($db->getText('products', $language)), $telegram->buildKeyboardButton($db->getText('contact', $language))],
         [$telegram->buildKeyboardButton($db->getText('info_bot', $language))],
         [$telegram->buildKeyboardButton($db->getText('choose_lang', $language))]
     ]);

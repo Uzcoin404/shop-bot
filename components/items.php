@@ -1,14 +1,14 @@
 <?php
     class Items {
         public function showItems($brandID){
-            global $telegram, $db, $userData, $func, $language;
+            global $telegram, $db, $userData, $func, $language, $siteUrl;
             $productID = $userData->getData('product');
             $items = $db->getItems($productID, $brandID);
 
             if ($items) {
                 foreach ($items as $key => $item) {
                     $name = addslashes($item['name']);
-                    $photo = "https://47f4-139-28-28-241.ngrok.io/delivery-bot/" . $item['photo_url'];
+                    $photo = $siteUrl . $item['photo_url'];
                     $price = number_format($item['price'], 0, '', ' ');
                     $info = $item[$language];
 
@@ -16,6 +16,7 @@
                         'id' => $item['id'],
                         'brand_id' => $brandID,
                         'product_id' => $productID,
+                        'name' => $name,
                         'price' => $item['price']
                     ];
 
